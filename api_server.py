@@ -89,10 +89,22 @@ async def query_rag(request: QueryRequest):
             avoid_linkedin=request.avoid_linkedin
         )
         
+        # Process sources to convert from dict to string format
+        sources_list = []
+        for source in result.get("sources", []):
+            if isinstance(source, dict):
+                # Extract content and metadata info
+                content = source.get("content", "")
+                metadata = source.get("metadata", {})
+                source_name = metadata.get("source", "Unknown")
+                sources_list.append(f"{source_name}: {content}")
+            else:
+                sources_list.append(str(source))
+        
         return QueryResponse(
             answer=result["answer"],
-            sources=result.get("sources", []),
-            collection_used=result.get("collection", request.collection),
+            sources=sources_list,
+            collection_used=result.get("source_type", request.collection),
             metadata=result.get("metadata", {})
         )
     
